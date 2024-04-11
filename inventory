@@ -1,2 +1,2 @@
-172.233.115.52
-172.233.115.69
+172.233.115.52 apache_package=apache2 php_package=libapache2-mod-php
+172.233.115.69 apache_package=apache2 php_package=libapache2-mod-php
