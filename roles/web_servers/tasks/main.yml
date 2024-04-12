@@ -1,49 +1,31 @@
-- name: Install apache and php for ubuntu
-  tags: apache,apache2,ubuntu
-  apt:
+- name: Install apache and php
+  tags: apache,https,php
+  package:
     name:
-    - apache2
-    - libapache2-mod-php
+    - "{{ apache_package_name }}"
+    - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "Ubuntu"
 
-- name: Install httpd and php for CentOS
-  tags: httpd,Centos
-  dnf:
-    name:
-    - httpd
-    - php
-    state: latest
-  when: ansible_distribution == "CentOS"
-
-- name: start httpd (CentOS)
-  tags: apache, centos, httpd
+- name: start and enable apache services
+  tags: apache,httpd
   service:
-    name: httpd
+    name: "{{ apache_service }}"
     state: started
     enabled: yes
-  when: ansible_distribution == "CentOS"
 
-- name: change ServerAdmin email and restart the service (Ubuntu)
-  tags: apache,apache2
+- name: change email address for admin
+  tags: apache,ubuntu
   lineinfile:
     path: /etc/apache2/sites-available/000-default.conf
-    search_string: 'ServerAdmin webmaster'
-    line: ServerAdmin serveradmin@localhost
+    search_string: 'ServerAdmin'
+    line: ServerAdmin serveradmin@somewhere.net
   when: ansible_distribution == "Ubuntu"
-  register: apache2_change_line
-
-- name: restart apache (Ubuntu)
-  tags: apache,apache2,ubuntu
-  service:
-    name: apache2
-    state: restarted
-  when: apache2_change_line.changed
+  notify: restart_apache
 
 - name: copy default html file for site
-  tags: apache,apache2
+  tags: apache,apache2,httpd
   copy:
-    src: default_site.html  # destination of files folder is assumed
+    src: default_site.html  # relative destination of files folder is assumed
     dest: /var/www/html/index.html
     owner: root
     group: root
