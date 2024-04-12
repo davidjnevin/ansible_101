@@ -4,19 +4,29 @@
   become: true
   pre_tasks:
 
-  - name: install updates (CentOS)
+  - name: update repo cache (CentOS)
     tags: always
     dnf:
-      update_only: yes
       update_cache: yes
+    changed_when: false  # if cache is updated do not register as a change
     when: ansible_distribution == "CentOS"
 
-  - name: install updates (Ubuntu)
+  - name: update repo cache (Ubuntu)
     tags: always
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false  # if cache is updated do not register as a change
     when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: add ssh key for simone
+    tags: always
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVWHbxzI2xJCQh3w5E5qic1c0LYBaSpz85FbT/RExDk ansible_default"
 
 
 - hosts: web_servers
@@ -57,6 +67,22 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: change a line in a file and restart the service
+    tags: apache,apache2
+    lineinfile:
+      path: /var/www/html/index.html
+      search_string: '<p>Ansible is'
+      line: <p>Ansible continues to change lines</p>
+    when: ansible_distribution == "Ubuntu"
+    register: apache2_change_line
+
+  - name: restart apache (Ubuntu)
+    tags: apache,apache2,ubuntu
+    service:
+      name: apache2
+      state: restarted
+    when: apache2_change_line.changed
 
 - hosts: file_servers
   become: true
