@@ -4,6 +4,7 @@
     name:
     - "{{ apache_package_name }}"
     - "{{ php_package_name }}"
+    - "{{ ansible_package_name }}"
     state: latest
 
 - name: start and enable apache services
